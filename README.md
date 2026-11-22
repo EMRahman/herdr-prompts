@@ -6,6 +6,7 @@ A native sidebar panel mod for **Herdr** (`herdr-app`) to save, manage, and past
 
 ## Features
 - **Click to Paste:** Clicking any saved prompt focuses the active terminal pane and pastes the prompt text directly into it without pressing Enter.
+- **Drag to Reorder:** Drag any prompt row up or down to reorder your list (a highlighted line shows where it will land, and the new order persists automatically).
 - **Hover Actions:** Hovering a prompt shows its full text in a tooltip and reveals quick buttons to:
   - **Send (`↵`):** Paste and submit immediately via `hc send`.
   - **Edit:** Open the native prompt editor dialog (also available via right-click).
