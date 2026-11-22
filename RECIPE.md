@@ -15,6 +15,7 @@ A left-sidebar panel for Herdr that lists saved recurring prompts so you can pas
 ## How it behaves
 
 - **Click a prompt row:** Focuses the currently focused terminal (`focused()?.shown ?? focused()?.terminal`) via `pane.focus`, writes the prompt text to the clipboard (`cx.write_to_clipboard`), and runs `terminal.paste` so the text lands in the active console without pressing Enter. Flashes the row's icon and title in `theme().ansi2` for `1200ms`. If no terminal is focused, posts a `"warning"` toast via `notify()`.
+- **Drag a prompt row up/down:** Pressing and dragging a row over another row dims the dragged row (`opacity(0.5)`), draws a `2px` `theme().accent` indicator line at the top or bottom edge of the target row, and reorders `"prompts.items"` on release. Releasing on the original row pastes as a normal click; dragging outside the panel cancels the drag via `#root`'s `on_hover(false)` handler.
 - **Hover `↵` button:** Focuses the active terminal and runs `hc(["send", "--force", target, text])` to paste and press Enter immediately. Shows `title…` while sending, flashes green on success, or posts an `"error"` toast if `hc` fails.
 - **Click `+`:** Opens the editor dialog (`openOverlay` with `props: { editor: true }`) and focuses the Title input.
 - **Hover edit icon or right-click a row:** Opens the editor dialog prefilled with that prompt (`props: { editor: true, prompt }`).

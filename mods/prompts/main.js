@@ -39,6 +39,8 @@ export default class Prompts extends View {
     this.hoveredId = null;
     this.flashId = null;
     this.sendingId = null;
+    this.pressed = null;
+    this.over = null;
 
     const p = props() ?? {};
     if (p.editor) {
@@ -144,6 +146,16 @@ export default class Prompts extends View {
   deletePrompt(id) {
     const next = getPrompts().filter((p) => p.id !== id);
     setShared(SHARED_KEY, next);
+  }
+
+  movePrompt(fromId, toId) {
+    const list = [...getPrompts()];
+    const fromIndex = list.findIndex((p) => p.id === fromId);
+    const toIndex = list.findIndex((p) => p.id === toId);
+    if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return;
+    const [moved] = list.splice(fromIndex, 1);
+    list.splice(toIndex, 0, moved);
+    setShared(SHARED_KEY, list);
   }
 
   saveEditor() {
@@ -292,8 +304,9 @@ export default class Prompts extends View {
       .child(content);
   }
 
-  row(t, item, narrow) {
-    const hovered = this.hoveredId === item.id;
+  row(t, item, index, fromIndex, narrow) {
+    const dragging = this.pressed !== null && this.over !== this.pressed;
+    const hovered = !dragging && this.hoveredId === item.id;
     const flashed = this.flashId === item.id;
     const sending = this.sendingId === item.id;
 
@@ -324,6 +337,7 @@ export default class Prompts extends View {
     const iconColor = flashed ? t.ansi2 : hovered ? t.foreground : t.dim;
 
     return h_flex()
+      .relative()
       .id(`pm-${item.id}`)
       .h(28)
       .px(8)
@@ -333,6 +347,19 @@ export default class Prompts extends View {
       .gap(8)
       .cursor_pointer()
       .hover((s) => s.bg(t.hover))
+      .when(this.pressed === item.id && this.over !== item.id, (el) => el.opacity(0.5))
+      .when(this.pressed !== null && this.over === item.id && this.pressed !== item.id, (el) =>
+        el.child(
+          div()
+            .absolute()
+            .left(0)
+            .right(0)
+            .h(2)
+            .bg(t.accent)
+            .when(fromIndex < index, (line) => line.bottom(0))
+            .when(fromIndex > index, (line) => line.top(0)),
+        ),
+      )
       .tooltip(item.text)
       .on_hover((isHover, cx) => {
         const next = isHover ? item.id : (this.hoveredId === item.id ? null : this.hoveredId);
@@ -341,7 +368,28 @@ export default class Prompts extends View {
           cx.notify();
         }
       })
-      .on_click((_e, cx) => this.pastePrompt(item, cx))
+      .on_mouse_down("left", () => {
+        this.pressed = item.id;
+        this.over = item.id;
+      })
+      .on_mouse_move((_e, cx) => {
+        if (this.pressed !== null && this.over !== item.id) {
+          this.over = item.id;
+          cx.notify();
+        }
+      })
+      .on_mouse_up("left", (_e, cx) => {
+        const from = this.pressed;
+        const over = this.over;
+        this.pressed = null;
+        this.over = null;
+        if (from !== null && over === item.id && from !== item.id) {
+          this.movePrompt(from, item.id);
+        } else if (from === item.id) {
+          this.pastePrompt(item, cx);
+        }
+        cx.notify();
+      })
       .on_mouse_down("right", () => this.openEditor(item))
       .child(svg(iconName).size(14).flex_none().text_color(iconColor))
       .child(
@@ -389,12 +437,20 @@ export default class Prompts extends View {
       );
   }
 
+  clearDrag(cx) {
+    if (this.pressed === null && this.over === null) return;
+    this.pressed = null;
+    this.over = null;
+    cx.notify();
+  }
+
   render() {
     const t = theme();
     if (props()?.editor) return this.renderEditor(t);
 
     const narrow = this.width < 160;
     const list = getPrompts();
+    const fromIndex = this.pressed === null ? -1 : list.findIndex((p) => p.id === this.pressed);
 
     return v_flex()
       .id("root")
@@ -403,6 +459,11 @@ export default class Prompts extends View {
         this.width = size.width;
         cx.notify();
       })
+      .on_hover((hovered, cx) => {
+        if (!hovered) this.clearDrag(cx);
+      })
+      .on_mouse_up("left", (_e, cx) => this.clearDrag(cx))
+      .on_mouse_down_out((_e, cx) => this.clearDrag(cx))
       .size_full()
       .min_h(0)
       .bg(t.chrome)
@@ -459,7 +520,7 @@ export default class Prompts extends View {
           .when(narrow, (el) => el.items_center())
           .overflow_y_scrollbar()
           .mode("always")
-          .children(list.map((item) => this.row(t, item, narrow))),
+          .children(list.map((item, index) => this.row(t, item, index, fromIndex, narrow))),
       );
   }
 }
