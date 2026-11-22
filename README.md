@@ -16,7 +16,12 @@ A native sidebar panel mod for **Herdr** (`herdr-app`) to save, manage, and past
 
 ## Installation
 
-1. Copy the mod into `~/.config/herdr-app/mods/prompts/` and verify it:
+### Ask your agent in Herdr
+Tell any coding agent running inside Herdr:
+> Install the `herdr-prompts` mod from `https://github.com/EMRahman/herdr-prompts` and tile it into my left sidebar.
+
+### Manual install
+1. Copy `mods/prompts/` into `~/.config/herdr-app/mods/prompts/` and verify it:
    ```bash
    ./install.sh
    ```

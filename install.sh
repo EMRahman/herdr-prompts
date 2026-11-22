@@ -2,7 +2,7 @@
 set -e
 
 TARGET_DIR="${HERDR_APP_HOME:-$HOME/.config/herdr-app}/mods/prompts"
-SOURCE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SOURCE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/mods/prompts"
 
 echo "Installing Prompts mod to: $TARGET_DIR"
 mkdir -p "$TARGET_DIR"
