@@ -437,6 +437,13 @@ export default class Prompts extends View {
       );
   }
 
+  clearDrag(cx) {
+    if (this.pressed === null && this.over === null) return;
+    this.pressed = null;
+    this.over = null;
+    cx.notify();
+  }
+
   render() {
     const t = theme();
     if (props()?.editor) return this.renderEditor(t);
@@ -452,13 +459,11 @@ export default class Prompts extends View {
         this.width = size.width;
         cx.notify();
       })
-      .on_mouse_up("left", (_e, cx) => {
-        if (this.pressed !== null) {
-          this.pressed = null;
-          this.over = null;
-          cx.notify();
-        }
+      .on_hover((hovered, cx) => {
+        if (!hovered) this.clearDrag(cx);
       })
+      .on_mouse_up("left", (_e, cx) => this.clearDrag(cx))
+      .on_mouse_down_out((_e, cx) => this.clearDrag(cx))
       .size_full()
       .min_h(0)
       .bg(t.chrome)
