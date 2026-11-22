@@ -2,6 +2,8 @@
 
 A native sidebar panel mod for **Herdr** (`herdr-app`) to save, manage, and paste recurring prompts directly into your active console or coding agent pane.
 
+![Prompts sidebar panel](preview.png)
+
 ## Features
 - **Click to Paste:** Clicking any saved prompt focuses the active terminal pane and pastes the prompt text directly into it without pressing Enter.
 - **Hover Actions:** Hovering a prompt shows its full text in a tooltip and reveals quick buttons to:
