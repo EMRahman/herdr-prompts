@@ -2,7 +2,11 @@
 
 A native sidebar panel mod for **Herdr** (`herdr-app`) to save, manage, and paste recurring prompts directly into your active console or coding agent pane.
 
-![Prompts sidebar panel](preview.png)
+![Herdr Prompts sidebar showing Create PR, Review Comments Only and Create PR, Merge If 👍](preview.png)
+
+## Why keep some prompts manual?
+
+Keep standing project guidance in `AGENTS.md` and save workflows that need a per-task decision in Prompts. For example, I choose **Create PR, Review Comments Only** when I want the agent to handle review feedback and leave the merge to me. I choose **Create PR, Merge If 👍** when I want it to merge after a thumbs-up. A click pastes the selected prompt into the active pane so I can review or edit it before sending.
 
 ## Features
 - **Click to Paste:** Clicking any saved prompt focuses the active terminal pane and pastes the prompt text directly into it without pressing Enter.
