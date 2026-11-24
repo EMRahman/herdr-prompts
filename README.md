@@ -1,8 +1,8 @@
-# herdr-prompts
+# Saved Prompts for Herdr
 
-A native sidebar panel mod for **Herdr** (`herdr-app`) to save, manage, and paste recurring prompts directly into your active console or coding agent pane.
+Save your recurring prompts in the **Herdr** sidebar. One click puts a prompt in the active console or coding agent so you can review or edit it before sending.
 
-![Herdr Prompts sidebar showing Create PR, Review Comments Only and Create PR, Merge If 👍](preview.png)
+![The Review PR prompt in the Herdr sidebar and its text in the active pane, ready to edit before sending](preview.png)
 
 ## Why keep some prompts manual?
 
