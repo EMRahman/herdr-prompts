@@ -18,7 +18,7 @@ immediately.
 
 - **Click a prompt row:** Focuses the currently focused terminal (`focused()?.shown ?? focused()?.terminal`) via `pane.focus`, writes the prompt text to the clipboard (`cx.write_to_clipboard`), and runs `terminal.paste` so the text lands in the active console without pressing Enter. Flashes the row's icon and title in `theme().ansi2` for `1200ms`. If no terminal is focused, posts a `"warning"` toast via `notify()`.
 - **Drag a prompt row up/down:** Pressing and dragging a row over another row dims the dragged row (`opacity(0.5)`), draws a `2px` `theme().accent` indicator line at the top or bottom edge of the target row, and reorders `"prompts.items"` on release. Releasing on the original row pastes as a normal click; dragging outside the panel cancels the drag via `#root`'s `on_hover(false)` handler.
-- **Click `↵` on a hovered row:** Focuses the active terminal and runs `hc(["send", "--force", target, text])` to paste and press Enter immediately. Shows `title…` while sending, flashes green on success, or posts an `"error"` toast if `hc` fails.
+- Clicking `↵` focuses the active terminal and runs `hc send --force` through `exec` with a 75-second timeout. Herdr can wait for an unfinished draft. During delivery, the row shows `title…`, keeps `↵` visible and disabled, and ignores repeat sends and pastes for that prompt in the same terminal. It flashes green on success or shows an error if delivery fails.
 - **Click `+`:** Opens the editor dialog (`openOverlay` with `props: { editor: true }`) and focuses the Title input.
 - **Click the edit icon on a hovered row or right-click a row:** Opens the editor dialog prefilled with that prompt (`props: { editor: true, prompt }`).
 - **Click `×` on a hovered row or `Delete` in the editor:** Removes the prompt from `shared("prompts.items")`.
@@ -28,15 +28,15 @@ immediately.
 ## Built from
 
 - **Mod folder:** `mods/prompts/main.js` and `mods/prompts/mod.json` (`{"place": "none"}`).
-- **Layout placement:** Intended to tile inside `sidebar-lists` in a cloned layout (e.g. `size: { px: 132 }`, `min: 41`) alongside `spaces`, `agents`, and other sidebar panels.
+- **Layout placement:** In a cloned layout, put the flexible `sidebar-lists` column and the `prompts` block (`size: { px: 132 }`, `min: 41`) in a shared `sidebar-panels` column, in that order. Keep `spaces`, `agents`, and `context` inside `sidebar-lists`. The divider above Prompts then resizes the Prompts block.
 - **UI primitives:** `View`, `div`, `svg` from `gpui-kit`; `v_flex`, `h_flex`, `InputState`, `Input`, `TextareaState`, `Textarea` from `gpui-base`.
 - **Icons reused from shipped `workspace-chrome`:** `plus.svg`, `file-text.svg`, `check.svg`, `square-pen.svg`, `x.svg`.
-- **`herdr` functions and commands:** `shared` / `setShared` (persisted under `"prompts.items"`, seeded with a default `"PR Review"` prompt), `focused`, `run` (`pane.focus`, `terminal.paste`), `hc` (`hc send --force`), `openOverlay`, `closeOverlay`, `notify`, `props`, `theme`, `checking`.
+- **`herdr` functions and commands:** `shared` / `setShared` (persisted under `"prompts.items"`, seeded with a default `"PR Review"` prompt), `focused`, `run` (`pane.focus`, `terminal.paste`), `exec` (`hc send --force`), `openOverlay`, `closeOverlay`, `notify`, `props`, `theme`, `checking`.
 - **Mod roles via `props()`:** Default sidebar panel when `!props()?.editor`; modal Add/Edit dialog when `props()?.editor === true` (with optional `props().prompt`).
 
 ## Watch out
 
-- **Do not set `"place": "left"` in `mod.json`** if you want the panel tiled inside the existing left sidebar — `"place": "left"` docks a brand-new top-level column in `root`. Keep `"place": "none"` and add the block to `sidebar-lists` in a cloned layout.
+- Keep `"place": "none"` in `mod.json` so the layout controls placement. Herdr assigns a divider between two fixed-height siblings to the upper sibling. Keep the preceding `sidebar-lists` column flexible so the Prompts divider controls Prompts.
 - **Paste uses the system clipboard** (`cx.write_to_clipboard` + `run("terminal.paste")`) because `hc send` always submits with Enter. Clicking a prompt replaces the clipboard contents with that prompt text.
 - **Guard side effects during `herdr-app check`:** `init()` checks `if (!checking())` before calling `setShared` or focusing inputs.
 - **Stop propagation on row action buttons:** Each hover button calls `cx.stop_propagation()` on both `on_mouse_down("left")` and `on_click` so clicking `↵`, Edit, or Delete does not also trigger the row's paste handler.
@@ -46,6 +46,7 @@ immediately.
 
 - `herdr-app check ~/.config/herdr-app/mods/prompts` passes with exit code `0`.
 - `herdr-app status` reports `"errors": []` with the panel visible inside the left sidebar.
+- Dragging the divider above Prompts changes its height while the Context block keeps its height.
 - Clicking a saved prompt pastes its text into the focused terminal without submitting and flashes a green checkmark.
 - Clicking `+` opens the dialog, saving a new prompt immediately adds it to the sidebar list, and it persists across Herdr restarts.
 - Hovering a row reveals `↵`, Edit, and Delete; clicking `↵` submits the prompt to the active terminal via `hc send`.

@@ -12,7 +12,7 @@ Keep standing project guidance in `AGENTS.md` and save workflows that need a per
 - **Click to Paste:** Clicking any saved prompt focuses the active terminal pane and pastes the prompt text directly into it without pressing Enter.
 - **Drag to Reorder:** Drag any prompt row up or down to reorder your list (a highlighted line shows where it will land, and the new order persists automatically).
 - **Hover Actions:** Hovering a prompt shows its full text in a tooltip and reveals quick buttons to:
-  - **Send (`↵`):** Paste and submit immediately via `hc send`.
+  - **Send (`↵`):** Paste and submit via `hc send`. The button stays visible and disabled while delivery is pending, including when Herdr is waiting for an unfinished draft.
   - **Edit:** Open the native prompt editor dialog (also available via right-click).
   - **Delete (`×`):** Remove a saved prompt.
 - **Full Add/Edit Dialog (`+`):** Native Herdr modal with a title input and multi-line prompt textarea (`⌘↵` to save, `Esc` to cancel).
@@ -31,17 +31,19 @@ Tell any coding agent running inside Herdr:
    ./install.sh
    ```
 
-2. Add the `prompts` block inside your layout's `sidebar-lists` column (e.g., `~/.config/herdr-app/layouts/main-context.json`) so it tiles alongside **Spaces**, **Agents**, and **Context**:
+2. In your personal layout (for example, `~/.config/herdr-app/layouts/main-context.json`), replace the `sidebar-lists` entry with a `sidebar-panels` column. Add its two children in the order shown below.
+
+   - Your existing `sidebar-lists` column with its other children and a flexible size. Omit `size` or use `"size": { "weight": 1 }`. If Prompts already appears inside this column, move that block to the next position below.
+   - The Prompts block.
+
    ```json
    {
      "id": "prompts",
      "type": "block",
-     "content": {
-       "mod": "prompts"
-     },
-     "size": {
-       "px": 132
-     },
+     "content": { "mod": "prompts" },
+     "size": { "px": 132 },
      "min": 41
    }
    ```
+
+   Drag the divider just above **Prompts** to resize it. Herdr assigns a divider between two fixed-height blocks to the upper block, so grouping the preceding lists into a flexible column gives Prompts its own divider.

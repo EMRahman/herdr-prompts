@@ -7,8 +7,8 @@ import { v_flex, h_flex, InputState, Input, TextareaState, Textarea } from "gpui
 import {
   checking,
   closeOverlay,
+  exec,
   focused,
-  hc,
   notify,
   openOverlay,
   props,
@@ -19,6 +19,8 @@ import {
 } from "herdr";
 
 const SHARED_KEY = "prompts.items";
+// Herdr Core can wait up to 60 seconds for an unfinished draft by default.
+const SEND_TIMEOUT_MS = 75_000;
 
 const DEFAULT_PROMPTS = [
   {
@@ -33,12 +35,16 @@ function getPrompts() {
   return Array.isArray(saved) ? saved : DEFAULT_PROMPTS;
 }
 
+function sendKey(target, id) {
+  return JSON.stringify([target, id]);
+}
+
 export default class Prompts extends View {
   init(_props, cx) {
     this.width = Infinity;
     this.hoveredId = null;
     this.flashId = null;
-    this.sendingId = null;
+    this.pendingSends = new Set();
     this.pressed = null;
     this.over = null;
 
@@ -104,6 +110,7 @@ export default class Prompts extends View {
       notify({ title: "No active console", body: "Click a terminal pane first.", level: "warning" });
       return;
     }
+    if (this.pendingSends.has(sendKey(target, item.id))) return;
     cx.write_to_clipboard(item.text);
     if (f.pane) run("pane.focus", { pane: f.pane });
     else run("pane.focus", { terminal: target });
@@ -119,13 +126,16 @@ export default class Prompts extends View {
       notify({ title: "No active console", body: "Click a terminal pane first.", level: "warning" });
       return;
     }
+    const key = sendKey(target, item.id);
+    if (this.pendingSends.has(key)) return;
+
     if (f.pane) run("pane.focus", { pane: f.pane });
     else run("pane.focus", { terminal: target });
-    this.sendingId = item.id;
+    this.pendingSends.add(key);
     cx.notify();
     cx.spawn(async (cx) => {
       try {
-        const r = await hc(["send", "--force", target, item.text]);
+        const r = await exec("hc", ["send", "--force", target, item.text], { timeout: SEND_TIMEOUT_MS });
         if (r.code !== 0) {
           notify({
             title: "Could not send prompt",
@@ -137,9 +147,10 @@ export default class Prompts extends View {
         }
       } catch (e) {
         notify({ title: "Could not send prompt", body: String(e?.message ?? e), level: "error" });
+      } finally {
+        this.pendingSends.delete(key);
+        cx.notify();
       }
-      if (this.sendingId === item.id) this.sendingId = null;
-      cx.notify();
     });
   }
 
@@ -293,22 +304,22 @@ export default class Prompts extends View {
       .items_center()
       .justify_center()
       .text_color(t.dim)
-      .cursor_pointer()
-      .hover((s) => s.bg(t.raised).text_color(t.foreground))
+      .when(Boolean(action), (el) => el.cursor_pointer().hover((s) => s.bg(t.raised).text_color(t.foreground)))
+      .when(!action, (el) => el.cursor_not_allowed().opacity(0.5))
       .tooltip(tooltip)
       .on_mouse_down("left", (_e, cx) => cx.stop_propagation())
       .on_click((_e, cx) => {
         cx.stop_propagation();
-        action(cx);
+        action?.(cx);
       })
       .child(content);
   }
 
-  row(t, item, index, fromIndex, narrow) {
+  row(t, item, index, fromIndex, narrow, target) {
     const dragging = this.pressed !== null && this.over !== this.pressed;
     const hovered = !dragging && this.hoveredId === item.id;
     const flashed = this.flashId === item.id;
-    const sending = this.sendingId === item.id;
+    const sending = this.pendingSends.has(sendKey(target, item.id));
 
     if (narrow) {
       return h_flex()
@@ -400,7 +411,7 @@ export default class Prompts extends View {
           .text_color(flashed ? t.ansi2 : t.foreground)
           .child(sending ? `${item.title}…` : item.title),
       )
-      .when(hovered && !sending, (el) =>
+      .when(hovered || sending, (el) =>
         el.child(
           h_flex()
             .flex_none()
@@ -410,9 +421,9 @@ export default class Prompts extends View {
               this.actionBtn(
                 t,
                 `pm-run-${item.id}`,
-                "Send & press Enter",
+                sending ? "Sending…" : "Send & press Enter",
                 div().text_size(11).child("↵"),
-                (cx) => this.sendPrompt(item, cx),
+                sending ? null : (cx) => this.sendPrompt(item, cx),
               ),
             )
             .child(
@@ -450,6 +461,8 @@ export default class Prompts extends View {
 
     const narrow = this.width < 160;
     const list = getPrompts();
+    const f = focused();
+    const target = f?.shown ?? f?.terminal;
     const fromIndex = this.pressed === null ? -1 : list.findIndex((p) => p.id === this.pressed);
 
     return v_flex()
@@ -520,7 +533,7 @@ export default class Prompts extends View {
           .when(narrow, (el) => el.items_center())
           .overflow_y_scrollbar()
           .mode("always")
-          .children(list.map((item, index) => this.row(t, item, index, fromIndex, narrow))),
+          .children(list.map((item, index) => this.row(t, item, index, fromIndex, narrow, target))),
       );
   }
 }
