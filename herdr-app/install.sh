@@ -8,7 +8,7 @@ echo "Installing Prompts mod to: $TARGET_DIR"
 mkdir -p "$TARGET_DIR"
 
 cp "$SOURCE_DIR/mod.json" "$TARGET_DIR/mod.json"
-cp "$SOURCE_DIR/main.js" "$TARGET_DIR/main.js"
+cp "$SOURCE_DIR"/*.js "$TARGET_DIR/"
 
 echo "Checking mod with herdr-app check..."
 HERDR_APP_BIN="${HOME}/.local/bin/herdr-app"

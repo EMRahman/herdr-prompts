@@ -17,26 +17,14 @@ import {
   shared,
   theme,
 } from "herdr";
+import { DEFAULT_PROMPTS, movePrompt, promptsOrDefault, removePrompt, savePrompt, sendKey } from "./list.js";
 
 const SHARED_KEY = "prompts.items";
 // Herdr Core can wait up to 60 seconds for an unfinished draft by default.
 const SEND_TIMEOUT_MS = 75_000;
 
-const DEFAULT_PROMPTS = [
-  {
-    id: "pr-review",
-    title: "PR Review",
-    text: "Check every minute for next 10 min if there is a thumbs up; if so merge; otherwise address the comments and ask for @codex review up to max of 10 times.",
-  },
-];
-
 function getPrompts() {
-  const saved = shared(SHARED_KEY);
-  return Array.isArray(saved) ? saved : DEFAULT_PROMPTS;
-}
-
-function sendKey(target, id) {
-  return JSON.stringify([target, id]);
+  return promptsOrDefault(shared(SHARED_KEY));
 }
 
 export default class Prompts extends View {
@@ -155,32 +143,21 @@ export default class Prompts extends View {
   }
 
   deletePrompt(id) {
-    const next = getPrompts().filter((p) => p.id !== id);
-    setShared(SHARED_KEY, next);
+    setShared(SHARED_KEY, removePrompt(getPrompts(), id));
   }
 
   movePrompt(fromId, toId) {
-    const list = [...getPrompts()];
-    const fromIndex = list.findIndex((p) => p.id === fromId);
-    const toIndex = list.findIndex((p) => p.id === toId);
-    if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return;
-    const [moved] = list.splice(fromIndex, 1);
-    list.splice(toIndex, 0, moved);
-    setShared(SHARED_KEY, list);
+    const next = movePrompt(getPrompts(), fromId, toId);
+    if (next) setShared(SHARED_KEY, next);
   }
 
   saveEditor() {
-    const title = this.titleInput.value().trim();
-    const text = this.bodyInput.value().trim();
-    if (!title || !text) return;
-
-    const current = getPrompts();
-    let next;
-    if (this.editingId) {
-      next = current.map((p) => (p.id === this.editingId ? { ...p, title, text } : p));
-    } else {
-      next = [{ id: `p-${Date.now()}`, title, text }, ...current];
-    }
+    const next = savePrompt(
+      getPrompts(),
+      { editingId: this.editingId, title: this.titleInput.value(), text: this.bodyInput.value() },
+      `p-${Date.now()}`,
+    );
+    if (!next) return;
     setShared(SHARED_KEY, next);
     closeOverlay(props().overlay);
   }

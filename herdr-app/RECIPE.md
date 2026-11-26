@@ -27,7 +27,7 @@ immediately.
 
 ## Built from
 
-- **Mod folder:** `mods/prompts/main.js` and `mods/prompts/mod.json` (`{"place": "none"}`).
+- **Mod folder:** `mods/prompts/main.js` (the view), `mods/prompts/list.js` (pure list helpers: reorder, save, remove, send keys), and `mods/prompts/mod.json` (`{"place": "none"}`).
 - **Layout placement:** In a cloned layout, put the flexible `sidebar-lists` column and the `prompts` block (`size: { px: 132 }`, `min: 41`) in a shared `sidebar-panels` column, in that order. Keep `spaces`, `agents`, and `context` inside `sidebar-lists`. The divider above Prompts then resizes the Prompts block.
 - **UI primitives:** `View`, `div`, `svg` from `gpui-kit`; `v_flex`, `h_flex`, `InputState`, `Input`, `TextareaState`, `Textarea` from `gpui-base`.
 - **Icons reused from shipped `workspace-chrome`:** `plus.svg`, `file-text.svg`, `check.svg`, `square-pen.svg`, `x.svg`.

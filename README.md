@@ -2,7 +2,7 @@
 
 Save your recurring prompts in the **Herdr** sidebar. One click puts a prompt in the active console or coding agent so you can review or edit it before sending.
 
-![The Review PR prompt in the Herdr sidebar and its text in the active pane, ready to edit before sending](preview.png)
+![The Review PR prompt in the Herdr sidebar and its text in the active pane, ready to edit before sending](herdr-app/preview.png)
 
 ## Why keep some prompts manual?
 
@@ -23,12 +23,12 @@ Keep standing project guidance in `AGENTS.md` and save workflows that need a per
 
 ### Ask your agent in Herdr
 Tell any coding agent running inside Herdr:
-> Install the `herdr-prompts` mod from `https://github.com/EMRahman/herdr-prompts` and tile it into my left sidebar.
+> Install the `herdr-prompts` mod from `https://github.com/EMRahman/herdr-prompts/tree/main/herdr-app` and tile it into my left sidebar.
 
 ### Manual install
-1. Copy `mods/prompts/` into `~/.config/herdr-app/mods/prompts/` and verify it:
+1. Copy `herdr-app/mods/prompts/` into `~/.config/herdr-app/mods/prompts/` and verify it:
    ```bash
-   ./install.sh
+   ./herdr-app/install.sh
    ```
 
 2. In your personal layout (for example, `~/.config/herdr-app/layouts/main-context.json`), replace the `sidebar-lists` entry with a `sidebar-panels` column. Add its two children in the order shown below.
@@ -47,3 +47,13 @@ Tell any coding agent running inside Herdr:
    ```
 
    Drag the divider just above **Prompts** to resize it. Herdr assigns a divider between two fixed-height blocks to the upper block, so grouping the preceding lists into a flexible column gives Prompts its own divider.
+
+## Development
+
+The list logic (reordering, saving, removing) lives in `herdr-app/mods/prompts/list.js`, separate from the GPUI view in `main.js`, so it can be tested without Herdr:
+
+```bash
+bun test
+```
+
+CI runs the same tests on every push and pull request.
