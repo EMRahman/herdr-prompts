@@ -1,0 +1,13 @@
+{
+  "name": "herdr-prompts",
+  "version": "0.1.0",
+  "description": "Save prompts you use often in the Herdr sidebar and paste or send them with one click",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "bun test"
+  },
+  "keywords": ["herdr", "herdr-mod", "prompts"],
+  "author": "Ehsan Rahman",
+  "license": "MIT"
+}
